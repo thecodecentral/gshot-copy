@@ -53,26 +53,23 @@ teardown() {
 
 @test "build_screenshot_command for area mode" {
     result=$(build_screenshot_command "area" "0" "false" "/tmp/test.png")
-    [[ "$result" == *"gnome-screenshot -a"* ]]
-    [[ "$result" == *"-f \"/tmp/test.png\""* ]]
-    [[ "$result" != *"-w"* ]]
+    [[ "$result" == *"scrot -s"* ]]
+    [[ "$result" == *"\"/tmp/test.png\""* ]]
     [[ "$result" != *"-d"* ]]
     [[ "$result" != *"-p"* ]]
 }
 
 @test "build_screenshot_command for window mode" {
     result=$(build_screenshot_command "window" "0" "false" "/tmp/test.png")
-    [[ "$result" == *"gnome-screenshot -w"* ]]
-    [[ "$result" == *"-f \"/tmp/test.png\""* ]]
-    [[ "$result" != *"-a"* ]]
+    [[ "$result" == *"scrot -s"* ]]
+    [[ "$result" == *"\"/tmp/test.png\""* ]]
 }
 
 @test "build_screenshot_command for screen mode" {
     result=$(build_screenshot_command "screen" "0" "false" "/tmp/test.png")
-    [[ "$result" == *"gnome-screenshot"* ]]
-    [[ "$result" == *"-f \"/tmp/test.png\""* ]]
-    [[ "$result" != *"-a"* ]]
-    [[ "$result" != *"-w"* ]]
+    [[ "$result" == *"scrot"* ]]
+    [[ "$result" == *"\"/tmp/test.png\""* ]]
+    [[ "$result" != *"-s"* ]]
 }
 
 @test "build_screenshot_command with delay" {
@@ -87,10 +84,10 @@ teardown() {
 
 @test "build_screenshot_command with all options" {
     result=$(build_screenshot_command "window" "3" "true" "/tmp/test.png")
-    [[ "$result" == *"gnome-screenshot -w"* ]]
+    [[ "$result" == *"scrot -s"* ]]
     [[ "$result" == *"-d 3"* ]]
     [[ "$result" == *"-p"* ]]
-    [[ "$result" == *"-f \"/tmp/test.png\""* ]]
+    [[ "$result" == *"\"/tmp/test.png\""* ]]
 }
 
 @test "build_screenshot_command with zero delay omits delay flag" {

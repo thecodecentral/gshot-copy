@@ -5,18 +5,18 @@
 
 ## Features
 
-- **Multiple screenshot modes**: area selection (default), window capture, or full screen using `gnome-screenshot`.
+- **Multiple screenshot modes**: area selection (default), window capture, or full screen using `scrot`.
 - **Timestamp-based filenames** with format `gshot-YYYY-MM-DD-HHMMSS-<4 random letters>.png` to ensure unique, collision-free naming.
 - **Configurable output directory**: saves to `~/Pictures/Screenshots/` by default, customizable with `--output-dir` option.
 - **Optional delay and pointer inclusion**: supports delayed screenshots and mouse cursor capture.
 - **Clipboard integration**: copies the full path of the saved screenshot to the clipboard using `wl-copy`, `xclip`, or `xsel`, depending on your environment.
-- **Minimal dependencies**: brings in only GTK3 libraries plus a small set of GNOME helper libs.
+- **Minimal dependencies**: lightweight X11/imlib2 libraries, no heavy desktop environment dependencies.
 - **Portable** across major distributions (Ubuntu/Debian, Fedora/CentOS, Arch, etc.) and display servers (X11 or Wayland).
 
 ## Requirements & Dependencies
 
 - **Shell**: POSIX‑compliant (`bash`, `dash`, `zsh`, `fish`, etc.)
-- **Screenshot tool**: `gnome-screenshot`
+- **Screenshot tool**: `scrot`
 - **Clipboard utilities**:
   - **Wayland**: `wl-clipboard` (`wl-copy` / `wl-paste`)
   - **X11**: `xclip` or `xsel`
@@ -27,13 +27,13 @@ On most distros, installation commands are:
 ```bash
 # Debian/Ubuntu
 sudo apt update
-sudo apt install gnome-screenshot wl-clipboard xclip xsel xbindkeys
+sudo apt install scrot wl-clipboard xclip xsel xbindkeys
 
 # Fedora
-sudo dnf install gnome-screenshot wl-clipboard xclip xsel xbindkeys
+sudo dnf install scrot wl-clipboard xclip xsel xbindkeys
 
 # Arch
-sudo pacman -Syu gnome-screenshot wl-clipboard xclip xsel xbindkeys
+sudo pacman -Syu scrot wl-clipboard xclip xsel xbindkeys
 ````
 
 ## Installation
@@ -155,12 +155,15 @@ generate_filename() {
 Add to config:
 
 ```text
-# Area screenshot
-bindsym $mod+Shift+Print exec --no-startup-id /home/you/bin/gshot-copy
+# Area screenshot (note: sleep helps with pointer grab issues)
+bindsym Print exec --no-startup-id sleep 0.1 && /home/you/bin/gshot-copy
 # Window screenshot  
-bindsym $mod+Ctrl+Shift+Print exec --no-startup-id /home/you/bin/gshot-copy --mode window
+bindsym Shift+Print exec --no-startup-id /home/you/bin/gshot-copy --mode window
 # Screen screenshot
-bindsym $mod+Alt+Print exec --no-startup-id /home/you/bin/gshot-copy --mode screen
+bindsym Ctrl+Print exec --no-startup-id /home/you/bin/gshot-copy --mode screen
+
+# Alternative: use --release flag to avoid pointer conflicts
+# bindsym --release Print exec --no-startup-id /home/you/bin/gshot-copy
 ```
 
 ### xbindkeys (Universal)
@@ -187,7 +190,8 @@ xbindkeys
 
 * **Flameshot**: offers GUI annotation and clipboard-copy of image data, but lacks timestamp filenames and auto-copy of file paths without scripting.
 * **Spectacle**: KDE’s screenshot tool with timestamp-based naming and clipboard image copy, but no random suffix for uniqueness or path-copy.
-* **scrot/maim/grim+slop**: ultra-lightweight but require wrappers for UI and clipboard integration.
+* **gnome-screenshot**: GUI-focused with poor script control and timing issues as it doesn't block the CLI.
+* **maim/grim+slop**: ultra-lightweight but require wrappers for UI and clipboard integration.
 
 No single turnkey utility covers all three of: area pick, timestamp naming with uniqueness, and file-path clipboard copy. **gshot-copy** fills that gap with minimal overhead and maximum portability.
 

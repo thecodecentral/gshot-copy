@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # gshot-copy - Screenshot utility with timestamp naming and clipboard integration
-# A lightweight wrapper around gnome-screenshot with enhanced functionality
+# A lightweight wrapper around scrot with enhanced functionality
 
 set -euo pipefail
 
@@ -51,15 +51,12 @@ build_screenshot_command() {
     local include_pointer="$3"
     local output_file="$4"
     
-    local cmd="gnome-screenshot"
+    local cmd="scrot"
     
     # Add mode-specific flags
     case "$mode" in
-        area)
-            cmd="$cmd -a"
-            ;;
-        window)
-            cmd="$cmd -w"
+        area|window)
+            cmd="$cmd -s"
             ;;
         screen)
             # No additional flags for full screen
@@ -77,7 +74,7 @@ build_screenshot_command() {
     fi
     
     # Add output file
-    cmd="$cmd -f \"$output_file\""
+    cmd="$cmd \"$output_file\""
     
     echo "$cmd"
 }
@@ -130,7 +127,7 @@ Examples:
   gshot-copy --include-pointer --delay 2        # Include cursor with delay
 
 Dependencies:
-  gnome-screenshot    Required for taking screenshots
+  scrot               Required for taking screenshots
   xclip/xsel/wl-copy  Required for clipboard functionality
 EOF
 }
@@ -188,11 +185,17 @@ parse_arguments() {
 
 # Main function
 main() {
-    # Check for gnome-screenshot dependency
-    if ! command -v gnome-screenshot &>/dev/null; then
-        echo "Error: gnome-screenshot is required but not installed" >&2
-        echo "Install with: sudo apt install gnome-screenshot" >&2
+    # Check for scrot dependency
+    if ! command -v scrot &>/dev/null; then
+        echo "Error: scrot is required but not installed" >&2
+        echo "Install with: sudo apt install scrot" >&2
         exit 1
+    fi
+    
+    # Check if scrot is already running to prevent conflicts
+    if pgrep -x "scrot" >/dev/null; then
+        echo "Another scrot instance is already running" >&2
+        exit 0
     fi
     
     # Parse arguments

@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is the `gshot-copy` project - a Linux screenshot utility that creates timestamp-based filenames and copies file paths to clipboard. The main deliverable is a single shell script (`gshot-copy`) that wraps `gnome-screenshot` with enhanced functionality.
+This is the `gshot-copy` project - a Linux screenshot utility that creates timestamp-based filenames and copies file paths to clipboard. The main deliverable is a single shell script (`gshot-copy`) that wraps `scrot` with enhanced functionality.
 
 ## Architecture
 
 The project consists of:
 - **Documentation**: `docs/architecture.md` contains the complete specification
-- **Main script**: `gshot-copy` (to be implemented in project root)
+- **Main script**: `gshot-copy` (implemented in project root)
 - **No build system**: Single shell script deployment
 
 ## Key Implementation Details
@@ -27,7 +27,7 @@ The script supports:
 - `--help`
 
 ### Dependencies
-- `gnome-screenshot` for taking screenshots
+- `scrot` for taking screenshots
 - Clipboard utilities: `wl-copy` (Wayland) or `xclip`/`xsel` (X11)
 - Standard POSIX tools: `date`, `tr`, `/dev/urandom`
 
@@ -59,6 +59,7 @@ Script uses `#!/usr/bin/env bash` shebang and should be POSIX-compliant. Works w
 - Provide proper exit codes and error messages
 - Handle cancelled screenshots
 - Directory creation failures
+- Prevent multiple scrot instances from conflicting
 
 ### Key Functions
 - `generate_filename()`: Pure function accepting optional timestamp/suffix for testing
@@ -67,4 +68,4 @@ Script uses `#!/usr/bin/env bash` shebang and should be POSIX-compliant. Works w
 - `copy_to_clipboard()`: Clipboard utility detection and fallback
 - `parse_arguments()`: Robust argument parsing with help and error handling
 
-The script builds `gnome-screenshot` commands dynamically based on user options and uses `eval` for execution.
+The script builds `scrot` commands dynamically based on user options and uses `eval` for execution. It includes safeguards to prevent multiple instances from running simultaneously.

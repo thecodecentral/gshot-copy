@@ -18,14 +18,12 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y bats
     
-    - name: Make test script executable
-      run: chmod +x run_tests.sh
-    
-    - name: Run unit tests
-      run: ./run_tests.sh
-    
     - name: Check script syntax
       run: bash -n gshot-copy
     
-    - name: Run ShellCheck
-      run: shellcheck gshot-copy run_tests.sh tests/test_helper.bash
+    - name: Run linter
+      run: ./run_linter.sh
+
+    - name: Run unit tests
+      run: ./run_tests.sh
+    

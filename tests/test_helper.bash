@@ -13,7 +13,17 @@ setup_test_env() {
     export TEST_TEMP_DIR="$temp_temp_dir"
     
     # Source the main script for function testing
-    source "${BATS_TEST_DIRNAME}/../../gshot-copy"
+    local script_path
+    if [ -f "${BATS_TEST_DIRNAME}/../../gshot-copy" ]; then
+        script_path="${BATS_TEST_DIRNAME}/../../gshot-copy"
+    elif [ -f "${PWD}/gshot-copy" ]; then
+        script_path="${PWD}/gshot-copy"
+    else
+        echo "Error: Cannot find gshot-copy script" >&2
+        return 1
+    fi
+    # shellcheck disable=SC1090,SC1091
+    source "$script_path"
 }
 
 # Clean up test environment
@@ -27,26 +37,18 @@ teardown_test_env() {
     fi
 }
 
-# Mock gnome-screenshot command for testing
-mock_gnome_screenshot() {
+# Mock scrot command for testing
+mock_scrot() {
     local output_file=""
-    local mode=""
+    local mode="screen"
     local delay=""
     local include_pointer=false
     
     # Parse arguments to extract filename
     while [[ $# -gt 0 ]]; do
         case $1 in
-            -f)
-                output_file="$2"
-                shift 2
-                ;;
-            -a)
-                mode="area"
-                shift
-                ;;
-            -w)
-                mode="window"
+            -s)
+                mode="selection"
                 shift
                 ;;
             -d)
@@ -58,6 +60,10 @@ mock_gnome_screenshot() {
                 shift
                 ;;
             *)
+                # Last argument is typically the output file
+                if [[ "$1" != -* ]]; then
+                    output_file="$1"
+                fi
                 shift
                 ;;
         esac
@@ -66,7 +72,7 @@ mock_gnome_screenshot() {
     # Create mock screenshot file
     if [ -n "$output_file" ]; then
         echo "Mock screenshot content" > "$output_file"
-        echo "Mock gnome-screenshot: mode=${mode:-screen}, delay=${delay:-0}, pointer=${include_pointer}, file=${output_file}" >&2
+        echo "Mock scrot: mode=${mode}, delay=${delay:-0}, pointer=${include_pointer}, file=${output_file}" >&2
     fi
     
     return 0
@@ -97,14 +103,14 @@ mock_xsel() {
 # Set up mocks
 setup_mocks() {
     # Override commands with mock functions
-    eval 'gnome-screenshot() { mock_gnome_screenshot "$@"; }'
+    eval 'scrot() { mock_scrot "$@"; }'
     eval 'wl-copy() { mock_wl_copy "$@"; }'
     eval 'xclip() { mock_xclip "$@"; }'
     eval 'xsel() { mock_xsel "$@"; }'
     
     # Export mock functions
-    export -f gnome-screenshot wl-copy xclip xsel
-    export -f mock_gnome_screenshot mock_wl_copy mock_xclip mock_xsel
+    export -f scrot wl-copy xclip xsel
+    export -f mock_scrot mock_wl_copy mock_xclip mock_xsel
 }
 
 # Check if a command exists (for dependency tests)

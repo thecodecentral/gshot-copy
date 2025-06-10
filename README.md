@@ -9,26 +9,44 @@ A lightweight, distro-agnostic screenshot utility for Linux that automatically n
 - **Configurable output directory**: defaults to `~/Pictures/Screenshots/`, customizable with `--output-dir`
 - **Optional delay and pointer inclusion**: supports delayed screenshots and mouse cursor capture
 - **Clipboard integration**: automatically copies the full file path to clipboard
-- **Minimal dependencies**: only requires `gnome-screenshot` and clipboard utilities
+- **Minimal dependencies**: only requires `scrot` and clipboard utilities
 - **Cross-shell compatibility**: works with bash, dash, zsh, and fish
 
 ## Installation
+
 
 ### Prerequisites
 
 Install the required dependencies:
 
+**Ubuntu/Debian**:
+
 ```bash
-# Debian/Ubuntu
-sudo apt update
-sudo apt install gnome-screenshot wl-clipboard xclip xsel
-
-# Fedora
-sudo dnf install gnome-screenshot wl-clipboard xclip xsel
-
-# Arch
-sudo pacman -Syu gnome-screenshot wl-clipboard xclip xsel
+sudo apt install scrot
 ```
+
+**Fedora**:
+
+```bash
+sudo dnf install scrot
+```
+
+**Arch**:
+
+```bash
+sudo pacman -Syu scrot
+```
+
+**Clipboard utilities** 
+
+This is for copying the screenshot path to the clipboard. Install **one** of the following:
+  - `xclip` (X11)
+  - `xsel` (X11 fallback)
+  - `wl-copy` (Wayland)
+
+**Standard tools**: `date`, `tr`, `/dev/urandom` (included in most Linux distributions)
+
+
 
 ### Install gshot-copy
 
@@ -126,12 +144,12 @@ Set up keyboard shortcuts in your desktop environment:
 Add to your config file:
 
 ```
-# Area screenshot
-bindsym $mod+Shift+Print exec --no-startup-id gshot-copy
+# Area screenshot (note: sleep helps with pointer grab issues)
+bindsym Print exec --no-startup-id sleep 0.1 && gshot-copy
 # Window screenshot  
-bindsym $mod+Ctrl+Shift+Print exec --no-startup-id gshot-copy --mode window
+bindsym Shift+Print exec --no-startup-id gshot-copy --mode window
 # Screen screenshot
-bindsym $mod+Alt+Print exec --no-startup-id gshot-copy --mode screen
+bindsym Ctrl+Print exec --no-startup-id gshot-copy --mode screen
 ```
 
 ## Development
@@ -158,24 +176,15 @@ brew install bats-core
 
 The unit tests cover filename generation and argument parsing logic. For full functionality testing, manually verify the different screenshot modes and options work as expected on your system.
 
-## Dependencies
-
-- **gnome-screenshot**: Takes the actual screenshots
-- **Clipboard utilities** (one of the following):
-  - `wl-copy` (Wayland)
-  - `xclip` (X11)
-  - `xsel` (X11 fallback)
-- **Standard tools**: `date`, `tr`, `/dev/urandom` (included in most Linux distributions)
-
 ## Troubleshooting
 
 ### Common Issues
 
-**"gnome-screenshot is required but not installed"**
+**"scrot is required but not installed"**
 ```bash
-sudo apt install gnome-screenshot  # Ubuntu/Debian
-sudo dnf install gnome-screenshot  # Fedora
-sudo pacman -S gnome-screenshot    # Arch
+sudo apt install scrot  # Ubuntu/Debian
+sudo dnf install scrot  # Fedora
+sudo pacman -S scrot    # Arch
 ```
 
 **"No clipboard utility found"**
@@ -186,6 +195,14 @@ sudo apt install wl-clipboard xclip xsel  # Install clipboard tools
 **"Screenshot cancelled or failed"**
 - This is normal if you press Escape during area selection
 - Check that you have sufficient permissions to write to the output directory
+
+**"Another scrot instance is already running"**
+- Wait for the current screenshot operation to complete
+- This prevents conflicts between multiple screenshot attempts
+
+**Window manager keybinding issues (scrot: couldn't grab pointer)**
+- Add a small delay: `sleep 0.1 && gshot-copy`
+- Or use `--release` flag in i3/sway: `bindsym --release Print exec gshot-copy`
 
 **Permission denied when creating directory**
 - Ensure you have write access to the output directory
@@ -204,7 +221,7 @@ Example: `gshot-2023-12-25-143052-AbCd.png`
 
 - **Flameshot**: Feature-rich with annotation, but no automatic file path copying
 - **Spectacle**: KDE's tool with some timestamp naming, but lacks uniqueness guarantees
-- **scrot/maim/grim**: Lightweight but require additional scripting for UI and clipboard
+- **maim/grim**: Lightweight but require additional scripting for UI and clipboard integration
 
 **gshot-copy** fills the gap by providing timestamp naming with uniqueness guarantees, multiple screenshot modes, and automatic file path clipboard integration in a single, portable script.
 
