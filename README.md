@@ -1,6 +1,12 @@
 # gshot-copy
 
-A lightweight, distro-agnostic screenshot utility for Linux that automatically names files with timestamps and copies the file path to your clipboard. This is especially userful for [Claude Code](https://www.anthropic.com/claude-code) where you want to share screenshots with the terminal.
+A lightweight, distro-agnostic screenshot wrapper for Linux that automatically names files with timestamps and copies the file path to your clipboard. This is especially userful for [Claude Code](https://www.anthropic.com/claude-code) where you want to share screenshots with the terminal.
+
+
+This allows you to:
+
+* Press a shortcut to take a screenshot
+* Ctrl+Shift+V to paste into Claude Code
 
 ## Features
 
