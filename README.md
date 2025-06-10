@@ -227,7 +227,7 @@ Example: `gshot-2023-12-25-143052-AbCd.png`
 
 ## License
 
-MIT License - see LICENSE file for details.
+Zero-Clause BSD - see LICENSE file for details.
 
 ## Contributing
 
