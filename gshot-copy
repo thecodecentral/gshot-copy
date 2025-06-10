@@ -1,0 +1,235 @@
+#!/usr/bin/env bash
+
+# gshot-copy - Screenshot utility with timestamp naming and clipboard integration
+# A lightweight wrapper around gnome-screenshot with enhanced functionality
+
+set -euo pipefail
+
+# Default options
+OUTPUT_DIR="${HOME}/Pictures/Screenshots"
+MODE="area"
+DELAY="0"
+INCLUDE_POINTER="false"
+
+# Function to generate filename with optional timestamp and suffix for testing
+generate_filename() {
+    local output_dir="$1"
+    local timestamp="${2:-$(date +%Y-%m-%d-%H%M%S)}"
+    local random_suffix="${3:-$(tr -dc 'a-zA-Z' < /dev/urandom | head -c 4)}"
+    
+    echo "${output_dir}/gshot-${timestamp}-${random_suffix}.png"
+}
+
+# Function to validate mode parameter
+validate_mode() {
+    local mode="$1"
+    case "$mode" in
+        area|window|screen)
+            return 0
+            ;;
+        *)
+            echo "Error: Invalid mode '$mode'. Use: area, window, or screen" >&2
+            return 1
+            ;;
+    esac
+}
+
+# Function to validate delay parameter
+validate_delay() {
+    local delay="$1"
+    if ! [[ "$delay" =~ ^[0-9]+$ ]] || [ "$delay" -lt 0 ]; then
+        echo "Error: Delay must be a non-negative integer" >&2
+        return 1
+    fi
+    return 0
+}
+
+# Function to build screenshot command
+build_screenshot_command() {
+    local mode="$1"
+    local delay="$2"
+    local include_pointer="$3"
+    local output_file="$4"
+    
+    local cmd="gnome-screenshot"
+    
+    # Add mode-specific flags
+    case "$mode" in
+        area)
+            cmd="$cmd -a"
+            ;;
+        window)
+            cmd="$cmd -w"
+            ;;
+        screen)
+            # No additional flags for full screen
+            ;;
+    esac
+    
+    # Add delay if specified
+    if [ "$delay" -gt 0 ]; then
+        cmd="$cmd -d $delay"
+    fi
+    
+    # Add pointer inclusion if requested
+    if [ "$include_pointer" = "true" ]; then
+        cmd="$cmd -p"
+    fi
+    
+    # Add output file
+    cmd="$cmd -f \"$output_file\""
+    
+    echo "$cmd"
+}
+
+# Function to copy file path to clipboard
+copy_to_clipboard() {
+    local file_path="$1"
+    
+    if command -v xclip &>/dev/null; then
+        echo -n "$file_path" | xclip -selection clipboard
+        return 0
+    elif command -v xsel &>/dev/null; then
+        echo -n "$file_path" | xsel --clipboard --input
+        return 0
+    elif command -v wl-copy &>/dev/null; then
+        echo -n "$file_path" | wl-copy
+        return 0
+    else
+        echo "Warning: No clipboard utility found (xclip, xsel, or wl-copy)" >&2
+        echo "File saved but path not copied to clipboard" >&2
+        return 1
+    fi
+}
+
+# Function to show help
+show_help() {
+    cat << EOF
+Usage: gshot-copy [OPTIONS]
+
+A lightweight screenshot utility that saves files with timestamp names
+and copies the file path to clipboard.
+
+Options:
+  --output-dir DIR      Output directory (default: ~/Pictures/Screenshots/)
+  --mode MODE          Screenshot mode: area, window, screen (default: area)
+  --delay SECONDS      Delay before screenshot (default: 0)
+  --include-pointer    Include mouse pointer in screenshot
+  --help              Show this help message
+
+Screenshot Modes:
+  area                Interactive area selection (default)
+  window              Click to capture specific window
+  screen              Capture entire screen
+
+Examples:
+  gshot-copy                                    # Area screenshot
+  gshot-copy --mode window                      # Window screenshot
+  gshot-copy --mode screen --delay 3            # Screen shot with 3s delay
+  gshot-copy --output-dir ~/Desktop             # Custom output directory
+  gshot-copy --include-pointer --delay 2        # Include cursor with delay
+
+Dependencies:
+  gnome-screenshot    Required for taking screenshots
+  xclip/xsel/wl-copy  Required for clipboard functionality
+EOF
+}
+
+# Parse command line arguments
+parse_arguments() {
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            --output-dir)
+                if [ -z "${2:-}" ]; then
+                    echo "Error: --output-dir requires a directory path" >&2
+                    exit 1
+                fi
+                OUTPUT_DIR="$2"
+                shift 2
+                ;;
+            --mode)
+                if [ -z "${2:-}" ]; then
+                    echo "Error: --mode requires a value (area, window, or screen)" >&2
+                    exit 1
+                fi
+                MODE="$2"
+                if ! validate_mode "$MODE"; then
+                    exit 1
+                fi
+                shift 2
+                ;;
+            --delay)
+                if [ -z "${2:-}" ]; then
+                    echo "Error: --delay requires a number of seconds" >&2
+                    exit 1
+                fi
+                DELAY="$2"
+                if ! validate_delay "$DELAY"; then
+                    exit 1
+                fi
+                shift 2
+                ;;
+            --include-pointer)
+                INCLUDE_POINTER="true"
+                shift
+                ;;
+            --help|-h)
+                show_help
+                exit 0
+                ;;
+            *)
+                echo "Error: Unknown option '$1'" >&2
+                echo "Use --help for usage information" >&2
+                exit 1
+                ;;
+        esac
+    done
+}
+
+# Main function
+main() {
+    # Check for gnome-screenshot dependency
+    if ! command -v gnome-screenshot &>/dev/null; then
+        echo "Error: gnome-screenshot is required but not installed" >&2
+        echo "Install with: sudo apt install gnome-screenshot" >&2
+        exit 1
+    fi
+    
+    # Parse arguments
+    parse_arguments "$@"
+    
+    # Create output directory
+    if ! mkdir -p "$OUTPUT_DIR"; then
+        echo "Error: Cannot create output directory '$OUTPUT_DIR'" >&2
+        exit 1
+    fi
+    
+    # Generate filename
+    FILE=$(generate_filename "$OUTPUT_DIR")
+    
+    # Build and execute screenshot command
+    SCREENSHOT_CMD=$(build_screenshot_command "$MODE" "$DELAY" "$INCLUDE_POINTER" "$FILE")
+    
+    # Execute screenshot command
+    if ! eval "$SCREENSHOT_CMD"; then
+        echo "Screenshot cancelled or failed" >&2
+        exit 1
+    fi
+    
+    # Verify file was created
+    if [ ! -f "$FILE" ]; then
+        echo "Error: Screenshot file was not created" >&2
+        exit 1
+    fi
+    
+    # Copy path to clipboard
+    copy_to_clipboard "$FILE"
+    
+    # Report success
+    echo "Screenshot saved: $FILE"
+}
+
+# Only run main if script is executed directly (not sourced)
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi
