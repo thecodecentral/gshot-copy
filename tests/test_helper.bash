@@ -5,8 +5,12 @@
 # Set up test environment
 setup_test_env() {
     # Create temporary directory for test output
-    export TEST_OUTPUT_DIR=$(mktemp -d)
-    export TEST_TEMP_DIR=$(mktemp -d)
+    local temp_output_dir
+    local temp_temp_dir
+    temp_output_dir=$(mktemp -d)
+    temp_temp_dir=$(mktemp -d)
+    export TEST_OUTPUT_DIR="$temp_output_dir"
+    export TEST_TEMP_DIR="$temp_temp_dir"
     
     # Source the main script for function testing
     source "${BATS_TEST_DIRNAME}/../../gshot-copy"
@@ -111,7 +115,8 @@ command_exists() {
 # Validate filename format
 validate_filename_format() {
     local filename="$1"
-    local basename=$(basename "$filename")
+    local basename
+    basename=$(basename "$filename")
     
     # Check format: gshot-YYYY-MM-DD-HHMMSS-XXXX.png
     if [[ "$basename" =~ ^gshot-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{6}-[a-zA-Z]{4}\.png$ ]]; then
@@ -124,13 +129,15 @@ validate_filename_format() {
 # Extract timestamp from filename
 extract_timestamp() {
     local filename="$1"
-    local basename=$(basename "$filename")
+    local basename
+    basename=$(basename "$filename")
     echo "$basename" | sed -n 's/^gshot-\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}-[0-9]\{6\}\)-[a-zA-Z]\{4\}\.png$/\1/p'
 }
 
 # Extract random suffix from filename
 extract_suffix() {
     local filename="$1"
-    local basename=$(basename "$filename")
+    local basename
+    basename=$(basename "$filename")
     echo "$basename" | sed -n 's/^gshot-[0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}-[0-9]\{6\}-\([a-zA-Z]\{4\}\)\.png$/\1/p'
 }
