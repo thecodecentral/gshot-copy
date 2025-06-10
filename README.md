@@ -52,6 +52,13 @@ sudo pacman -Syu gnome-screenshot wl-clipboard xclip xsel
 
 ## Usage
 
+### Use with Claude Code
+
+* Bind `~/.local/bin/gshot-copy` to a keyboard shortcut. 
+* Press the shortcut to take a screenshot, and paste the URL in Claude Code.
+
+See the [Keyboard Shortcuts](#keyboard-shortcuts) section for setup instructions.
+
 ### Basic Usage
 
 ```bash
