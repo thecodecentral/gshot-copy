@@ -8,6 +8,8 @@ This allows you to:
 * Press a shortcut to take a screenshot
 * Ctrl+Shift+V to paste into Claude Code
 
+![gshot-copy-demo.gif](gshot-copy-demo.gif)
+
 ## Features
 
 - **Multiple screenshot modes**: area selection (default), window capture, or full screen
