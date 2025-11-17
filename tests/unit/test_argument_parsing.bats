@@ -51,48 +51,80 @@ teardown() {
     [ "$status" -eq 1 ]
 }
 
-@test "build_screenshot_command for area mode" {
-    result=$(build_screenshot_command "area" "0" "false" "/tmp/test.png")
+@test "build_screenshot_command for area mode (X11)" {
+    XDG_SESSION_TYPE="x11" result=$(build_screenshot_command "area" "0" "false" "/tmp/test.png")
     [[ "$result" == *"scrot -s"* ]]
     [[ "$result" == *"\"/tmp/test.png\""* ]]
     [[ "$result" != *"-d"* ]]
     [[ "$result" != *"-p"* ]]
 }
 
-@test "build_screenshot_command for window mode" {
-    result=$(build_screenshot_command "window" "0" "false" "/tmp/test.png")
+@test "build_screenshot_command for area mode (Wayland)" {
+    XDG_SESSION_TYPE="wayland" result=$(build_screenshot_command "area" "0" "false" "/tmp/test.png")
+    [[ "$result" == *"grim"* ]]
+    [[ "$result" == *"slurp"* ]]
+    [[ "$result" == *"\"/tmp/test.png\""* ]]
+    [[ "$result" != *"scrot"* ]]
+}
+
+@test "build_screenshot_command for window mode (X11)" {
+    XDG_SESSION_TYPE="x11" result=$(build_screenshot_command "window" "0" "false" "/tmp/test.png")
     [[ "$result" == *"scrot -s"* ]]
     [[ "$result" == *"\"/tmp/test.png\""* ]]
 }
 
-@test "build_screenshot_command for screen mode" {
-    result=$(build_screenshot_command "screen" "0" "false" "/tmp/test.png")
+@test "build_screenshot_command for window mode (Wayland)" {
+    XDG_SESSION_TYPE="wayland" result=$(build_screenshot_command "window" "0" "false" "/tmp/test.png")
+    [[ "$result" == *"grim"* ]]
+    [[ "$result" == *"slurp -w"* ]]
+    [[ "$result" == *"\"/tmp/test.png\""* ]]
+}
+
+@test "build_screenshot_command for screen mode (X11)" {
+    XDG_SESSION_TYPE="x11" result=$(build_screenshot_command "screen" "0" "false" "/tmp/test.png")
     [[ "$result" == *"scrot"* ]]
     [[ "$result" == *"\"/tmp/test.png\""* ]]
     [[ "$result" != *"-s"* ]]
 }
 
-@test "build_screenshot_command with delay" {
-    result=$(build_screenshot_command "area" "5" "false" "/tmp/test.png")
+@test "build_screenshot_command for screen mode (Wayland)" {
+    XDG_SESSION_TYPE="wayland" result=$(build_screenshot_command "screen" "0" "false" "/tmp/test.png")
+    [[ "$result" == *"grim"* ]]
+    [[ "$result" == *"\"/tmp/test.png\""* ]]
+    [[ "$result" != *"slurp"* ]]
+}
+
+@test "build_screenshot_command with delay (X11)" {
+    XDG_SESSION_TYPE="x11" result=$(build_screenshot_command "area" "5" "false" "/tmp/test.png")
     [[ "$result" == *"-d 5"* ]]
 }
 
-@test "build_screenshot_command with pointer" {
-    result=$(build_screenshot_command "area" "0" "true" "/tmp/test.png")
+@test "build_screenshot_command with delay (Wayland)" {
+    XDG_SESSION_TYPE="wayland" result=$(build_screenshot_command "area" "5" "false" "/tmp/test.png")
+    [[ "$result" == *"sleep 5"* ]]
+}
+
+@test "build_screenshot_command with pointer (X11)" {
+    XDG_SESSION_TYPE="x11" result=$(build_screenshot_command "area" "0" "true" "/tmp/test.png")
     [[ "$result" == *"-p"* ]]
 }
 
-@test "build_screenshot_command with all options" {
-    result=$(build_screenshot_command "window" "3" "true" "/tmp/test.png")
+@test "build_screenshot_command with all options (X11)" {
+    XDG_SESSION_TYPE="x11" result=$(build_screenshot_command "window" "3" "true" "/tmp/test.png")
     [[ "$result" == *"scrot -s"* ]]
     [[ "$result" == *"-d 3"* ]]
     [[ "$result" == *"-p"* ]]
     [[ "$result" == *"\"/tmp/test.png\""* ]]
 }
 
-@test "build_screenshot_command with zero delay omits delay flag" {
-    result=$(build_screenshot_command "area" "0" "false" "/tmp/test.png")
+@test "build_screenshot_command with zero delay omits delay flag (X11)" {
+    XDG_SESSION_TYPE="x11" result=$(build_screenshot_command "area" "0" "false" "/tmp/test.png")
     [[ "$result" != *"-d"* ]]
+}
+
+@test "build_screenshot_command with zero delay omits delay flag (Wayland)" {
+    XDG_SESSION_TYPE="wayland" result=$(build_screenshot_command "area" "0" "false" "/tmp/test.png")
+    [[ "$result" != *"sleep"* ]]
 }
 
 @test "parse_arguments sets default values" {

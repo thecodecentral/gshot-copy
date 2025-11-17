@@ -50,33 +50,61 @@ build_screenshot_command() {
     local delay="$2"
     local include_pointer="$3"
     local output_file="$4"
-    
-    local cmd="scrot"
-    
-    # Add mode-specific flags
-    case "$mode" in
-        area|window)
-            cmd="$cmd -s"
-            ;;
-        screen)
-            # No additional flags for full screen
-            ;;
-    esac
-    
-    # Add delay if specified
-    if [ "$delay" -gt 0 ]; then
-        cmd="$cmd -d $delay"
+
+    # Check if running Wayland or X11
+    if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
+        # Use grim + slurp for Wayland
+        local cmd=""
+
+        # Add delay if specified
+        if [ "$delay" -gt 0 ]; then
+            cmd="sleep $delay && "
+        fi
+
+        # Add mode-specific commands
+        case "$mode" in
+            area)
+                cmd="${cmd}grim -g \"\$(slurp)\" \"$output_file\""
+                ;;
+            window)
+                # For window mode, use slurp with -w flag for window selection
+                cmd="${cmd}grim -g \"\$(slurp -w)\" \"$output_file\""
+                ;;
+            screen)
+                cmd="${cmd}grim \"$output_file\""
+                ;;
+        esac
+
+        echo "$cmd"
+    else
+        # Use scrot for X11
+        local cmd="scrot"
+
+        # Add mode-specific flags
+        case "$mode" in
+            area|window)
+                cmd="$cmd -s"
+                ;;
+            screen)
+                # No additional flags for full screen
+                ;;
+        esac
+
+        # Add delay if specified
+        if [ "$delay" -gt 0 ]; then
+            cmd="$cmd -d $delay"
+        fi
+
+        # Add pointer inclusion if requested
+        if [ "$include_pointer" = "true" ]; then
+            cmd="$cmd -p"
+        fi
+
+        # Add output file
+        cmd="$cmd \"$output_file\""
+
+        echo "$cmd"
     fi
-    
-    # Add pointer inclusion if requested
-    if [ "$include_pointer" = "true" ]; then
-        cmd="$cmd -p"
-    fi
-    
-    # Add output file
-    cmd="$cmd \"$output_file\""
-    
-    echo "$cmd"
 }
 
 # Function to copy file path to clipboard
@@ -127,8 +155,10 @@ Examples:
   gshot-copy --include-pointer --delay 2        # Include cursor with delay
 
 Dependencies:
-  scrot               Required for taking screenshots
-  xclip/xsel/wl-copy  Required for clipboard functionality
+  X11:    scrot + (xclip or xsel)
+  Wayland: grim + slurp + wl-copy
+
+  The script automatically detects your session type and uses the appropriate tools.
 EOF
 }
 
@@ -185,17 +215,34 @@ parse_arguments() {
 
 # Main function
 main() {
-    # Check for scrot dependency
-    if ! command -v scrot &>/dev/null; then
-        echo "Error: scrot is required but not installed" >&2
-        echo "Install with: sudo apt install scrot" >&2
-        exit 1
-    fi
-    
-    # Check if scrot is already running to prevent conflicts
-    if pgrep -x "scrot" >/dev/null; then
-        echo "Another scrot instance is already running" >&2
-        exit 0
+    # Check dependencies based on session type
+    if [ "$XDG_SESSION_TYPE" = "wayland" ]; then
+        if ! command -v grim &>/dev/null; then
+            echo "Error: grim is required for Wayland but not installed" >&2
+            echo "Install with: sudo apt install grim slurp (Debian/Ubuntu)" >&2
+            echo "            or sudo pacman -S grim slurp (Arch)" >&2
+            echo "            or sudo dnf install grim slurp (Fedora)" >&2
+            exit 1
+        fi
+        if ! command -v slurp &>/dev/null; then
+            echo "Error: slurp is required for Wayland but not installed" >&2
+            echo "Install with: sudo apt install grim slurp (Debian/Ubuntu)" >&2
+            echo "            or sudo pacman -S grim slurp (Arch)" >&2
+            echo "            or sudo dnf install grim slurp (Fedora)" >&2
+            exit 1
+        fi
+    else
+        if ! command -v scrot &>/dev/null; then
+            echo "Error: scrot is required for X11 but not installed" >&2
+            echo "Install with: sudo apt install scrot" >&2
+            exit 1
+        fi
+
+        # Check if scrot is already running to prevent conflicts
+        if pgrep -x "scrot" >/dev/null; then
+            echo "Another scrot instance is already running" >&2
+            exit 0
+        fi
     fi
     
     # Parse arguments
