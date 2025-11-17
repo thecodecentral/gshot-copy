@@ -17,40 +17,42 @@ This allows you to:
 - **Configurable output directory**: defaults to `~/Pictures/Screenshots/`, customizable with `--output-dir`
 - **Optional delay and pointer inclusion**: supports delayed screenshots and mouse cursor capture
 - **Clipboard integration**: automatically copies the full file path to clipboard
-- **Minimal dependencies**: only requires `scrot` and clipboard utilities
+- **Minimal dependencies**: only requires screenshot and clipboard utilities
 - **Cross-shell compatibility**: works with bash, dash, zsh, and fish
+- **X11 and Wayland support**: automatically detects your session type and uses the appropriate tools
 
 ## Installation
 
 
 ### Prerequisites
 
-Install the required dependencies:
+The script automatically detects whether you're running X11 or Wayland and uses the appropriate tools.
 
-**Ubuntu/Debian**:
-
-```bash
-sudo apt install scrot
-```
-
-**Fedora**:
+**For X11 users:**
 
 ```bash
-sudo dnf install scrot
+# Ubuntu/Debian
+sudo apt install scrot xclip
+
+# Fedora
+sudo dnf install scrot xclip
+
+# Arch
+sudo pacman -S scrot xclip
 ```
 
-**Arch**:
+**For Wayland users:**
 
 ```bash
-sudo pacman -Syu scrot
+# Ubuntu/Debian
+sudo apt install grim slurp wl-clipboard
+
+# Fedora
+sudo dnf install grim slurp wl-clipboard
+
+# Arch
+sudo pacman -S grim slurp wl-clipboard
 ```
-
-**Clipboard utilities** 
-
-This is for copying the screenshot path to the clipboard. Install **one** of the following:
-  - `xclip` (X11)
-  - `xsel` (X11 fallback)
-  - `wl-copy` (Wayland)
 
 **Standard tools**: `date`, `tr`, `/dev/urandom` (included in most Linux distributions)
 
@@ -188,16 +190,27 @@ The unit tests cover filename generation and argument parsing logic. For full fu
 
 ### Common Issues
 
-**"scrot is required but not installed"**
+**"scrot is required but not installed" (X11)**
 ```bash
 sudo apt install scrot  # Ubuntu/Debian
 sudo dnf install scrot  # Fedora
 sudo pacman -S scrot    # Arch
 ```
 
+**"grim/slurp is required but not installed" (Wayland)**
+```bash
+sudo apt install grim slurp  # Ubuntu/Debian
+sudo dnf install grim slurp  # Fedora
+sudo pacman -S grim slurp    # Arch
+```
+
 **"No clipboard utility found"**
 ```bash
-sudo apt install wl-clipboard xclip xsel  # Install clipboard tools
+# For X11
+sudo apt install xclip
+
+# For Wayland
+sudo apt install wl-clipboard
 ```
 
 **"Screenshot cancelled or failed"**
